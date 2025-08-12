@@ -142,13 +142,7 @@ impl Language {
                 cmd = Command::new("gcc");
                 args.push("-c".to_string());
                 if let Some(flags) = custom_flags {
-                    args.extend(flags.split_whitespace().map(|s| {
-                        if s.starts_with('-') {
-                            s.to_string()
-                        } else {
-                            format!("-{}", s)
-                        }
-                    }));
+                    args.extend(flags.split_whitespace().map(|s| s.to_string()));
                 }
                 args.push("-o".to_string());
                 let output_file = file.with_extension("o");
@@ -160,13 +154,7 @@ impl Language {
                 cmd = Command::new("g++");
                 args.push("-c".to_string());
                 if let Some(flags) = custom_flags {
-                    args.extend(flags.split_whitespace().map(|s| {
-                        if s.starts_with('-') {
-                            s.to_string()
-                        } else {
-                            format!("-{}", s)
-                        }
-                    }));
+                    args.extend(flags.split_whitespace().map(|s| s.to_string()));
                 }
                 args.push("-o".to_string());
                 let output_file = file.with_extension("o");

@@ -59,11 +59,11 @@ pub struct Args {
     pub jobs: usize,
 
     /// Custom compiler flags for C/C++
-    #[arg(long, value_name = "FLAGS")]
+    #[arg(long, value_name = "FLAGS", allow_hyphen_values = true)]
     pub cflags: Option<String>,
 
     /// Custom compiler flags for C++
-    #[arg(long, value_name = "FLAGS")]
+    #[arg(long, value_name = "FLAGS", allow_hyphen_values = true)]
     pub cxxflags: Option<String>,
 
     /// Create an AppImage with consolidated source code (instead of compiling)

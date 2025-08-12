@@ -1,3 +1,0 @@
-#!/bin/bash
-cd "${APPDIR}/usr/bin"
-exec "${APPDIR}/usr/bin/test_project.py" "$@"
