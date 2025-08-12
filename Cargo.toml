@@ -1,6 +1,6 @@
 [package]
 name = "lol"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["UnderForge"]
 description = "The Fast Multi-language Code Compiler CLI App"
