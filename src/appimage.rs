@@ -116,7 +116,7 @@ impl AppImageBuilder {
         Ok(consolidated_path)
     }
 
-    fn create_appimage_structure(&self, consolidated_file: &Path) -> Result<()> {
+    fn create_appimage_structure(&self, _consolidated_file: &Path) -> Result<()> {
         let appdir = self.output_dir.join("AppDir");
         
         // Create desktop entry

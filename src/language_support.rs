@@ -134,7 +134,7 @@ impl Language {
     }
 
     pub fn get_compilation_command(&self, file: &PathBuf, custom_flags: Option<&str>) -> Result<Command> {
-        let mut cmd = Command::new("");
+        let mut cmd;
         let mut args: Vec<String> = Vec::new();
 
         match self {

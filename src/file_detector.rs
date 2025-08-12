@@ -23,7 +23,6 @@ impl FileDetector {
         _config: &crate::config::Config,
     ) -> Result<HashMap<Language, Vec<PathBuf>>> {
         let mut language_files: HashMap<Language, Vec<PathBuf>> = HashMap::new();
-        let mut processed_extensions = std::collections::HashSet::new();
 
         // Walk through the project directory recursively
         for entry in WalkDir::new(project_path)
@@ -42,11 +41,6 @@ impl FileDetector {
             if let Some(extension) = path.extension() {
                 let ext_str = extension.to_string_lossy().to_lowercase();
                 
-                // Check if we've already processed this extension
-                if processed_extensions.contains(&ext_str) {
-                    continue;
-                }
-
                 // Get language for this extension
                 if let Some(language) = self.language_support.get_language_by_extension(&ext_str) {
                     // Check if this language should be compiled based on args
@@ -57,8 +51,6 @@ impl FileDetector {
                             .or_insert_with(Vec::new)
                             .push(path.canonicalize().unwrap_or_else(|_| path.to_path_buf()));
                     }
-                    
-                    processed_extensions.insert(ext_str);
                 }
             }
         }
@@ -84,6 +76,14 @@ impl FileDetector {
             return true;
         }
 
+        // Check if any specific language flags are set
+        let has_specific_flags = args.c || args.cpp || args.python || args.java || args.rust || args.go || args.js || args.ts;
+
+        // If no specific flags are set, compile all languages by default
+        if !has_specific_flags {
+            return true;
+        }
+
         // Check specific language flags
         match language {
             Language::C => args.c,
@@ -94,63 +94,9 @@ impl FileDetector {
             Language::Go => args.go,
             Language::JavaScript => args.js,
             Language::TypeScript => args.ts,
-            // For other languages, if no specific flags are set, compile them
-            _ => !args.c && !args.cpp && !args.python && !args.java && !args.rust && !args.go && !args.js && !args.ts,
+            // For other languages, compile them if no specific flags are set
+            _ => !has_specific_flags,
         }
-    }
-
-    pub fn get_file_stats(&self, project_path: &Path) -> Result<HashMap<Language, usize>> {
-        let mut stats: HashMap<Language, usize> = HashMap::new();
-        
-        for entry in WalkDir::new(project_path)
-            .follow_links(true)
-            .into_iter()
-            .filter_map(|e| e.ok())
-        {
-            let path = entry.path();
-            
-            if path.is_dir() || self.is_hidden_file(path) {
-                continue;
-            }
-
-            if let Some(extension) = path.extension() {
-                let ext_str = extension.to_string_lossy().to_lowercase();
-                
-                if let Some(language) = self.language_support.get_language_by_extension(&ext_str) {
-                    *stats.entry(language.clone()).or_insert(0) += 1;
-                }
-            }
-        }
-
-        Ok(stats)
-    }
-
-    pub fn filter_files_by_language(
-        &self,
-        files: &[PathBuf],
-        language: &Language,
-    ) -> Vec<PathBuf> {
-        files
-            .iter()
-            .filter(|file| {
-                if let Some(extension) = file.extension() {
-                    let ext_str = extension.to_string_lossy().to_lowercase();
-                    if let Some(file_language) = self.language_support.get_language_by_extension(&ext_str) {
-                        return file_language == language;
-                    }
-                }
-                false
-            })
-            .cloned()
-            .collect()
-    }
-
-    pub fn get_supported_languages(&self) -> Vec<&Language> {
-        self.language_support.get_available_languages()
-    }
-
-    pub fn get_supported_extensions(&self) -> Vec<&String> {
-        self.language_support.get_supported_extensions()
     }
 }
 
@@ -193,6 +139,7 @@ mod tests {
             jobs: 1,
             cflags: None,
             cxxflags: None,
+            name: None,
         };
 
         let files = detector.detect_files(project_path, &args, &crate::config::Config::default()).unwrap();

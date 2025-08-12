@@ -1,19 +1,19 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
-use std::process::{Command, Output};
+use std::process::Output;
 use std::sync::Arc;
 use anyhow::{Context, Result};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 use tokio::sync::Semaphore;
 use crate::config::Config;
-use crate::language_support::{Language, LanguageSupport};
+use crate::language_support::Language;
 use crate::args::Args;
+use std::process::Command;
+use crate::language_support::LanguageSupport;
 
 pub struct Compiler {
-    config: Config,
     max_jobs: usize,
-    language_support: LanguageSupport,
 }
 
 #[derive(Debug)]
@@ -30,11 +30,9 @@ pub enum CompilationStatus {
 }
 
 impl Compiler {
-    pub fn new(config: Config, max_jobs: usize) -> Self {
+    pub fn new(_config: Config, max_jobs: usize) -> Self {
         Self {
-            config,
             max_jobs,
-            language_support: LanguageSupport::new(),
         }
     }
 
@@ -214,7 +212,7 @@ impl Compiler {
     pub fn check_compilers_available(&self) -> HashMap<Language, bool> {
         let mut availability = HashMap::new();
         
-        for language in self.language_support.get_available_languages() {
+        for language in LanguageSupport::new().get_available_languages() {
             availability.insert(language.clone(), language.check_compiler_available());
         }
         
@@ -224,7 +222,7 @@ impl Compiler {
     pub fn get_compiler_info(&self) -> HashMap<Language, String> {
         let mut info = HashMap::new();
         
-        for language in self.language_support.get_available_languages() {
+        for language in LanguageSupport::new().get_available_languages() {
             if language.needs_compiler_check() {
                 let (compiler, args) = language.get_compiler_command();
                 if let Ok(output) = Command::new(compiler).args(args).output() {
